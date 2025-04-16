@@ -1,0 +1,49 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // Loads from .env file
+}
+
+// Device model
+model Device {
+  id                   Int       @id @default(autoincrement()) // Primary key (integer)
+  deviceId             String    @unique // The string ID used by the sensor/app
+  name                 String?   // Optional name
+  locationDescription String?   // Optional location description
+  createdAt            DateTime  @default(now())
+  lastSeenAt           DateTime  @updatedAt // Automatically updated on modification
+
+  // Relation to sensor readings: A device can have many readings
+  readings SensorReading[]
+}
+
+// Sensor Reading model
+model SensorReading {
+  id              Int       @id @default(autoincrement()) // Primary key
+  device          Device    @relation(fields: [deviceIdRef], references: [id], onDelete: Cascade) // Foreign key relation
+  deviceIdRef     Int       @map("device_id_ref") // The actual foreign key column in the DB
+  timestamp       DateTime  @default(now()) // Server timestamp when record is created
+  clientTimestamp DateTime? // Optional client-side timestamp
+
+  temperature Float?
+  humidity    Float?
+  pm25        Float? // Prisma uses camelCase, maps to pm25 column
+  pm10        Float?
+  co2         Float?
+  tvoc        Float?
+
+  // Index for efficient querying of readings per device over time
+  @@index([deviceIdRef, timestamp])
+  @@map("sensor_readings") // Explicitly map model name to table name
+}
