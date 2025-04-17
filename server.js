@@ -1,15 +1,25 @@
 // server.js
-require('dotenv').config(); // Load .env variables first
+require('dotenv').config();
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
+const cors = require('cors'); // Import cors
 
 const prisma = new PrismaClient();
 const app = express();
-const PORT = process.env.PORT || 8000; // Use port from .env or default to 8000
+const PORT = process.env.PORT || 8000;
 
 // --- Middleware ---
-app.use(express.json()); // Middleware to parse JSON request bodies
+app.use(cors()); // Enable CORS for all origins (simplest for development)
+/*
+// OR, more specific configuration:
+app.use(cors({
+  origin: 'http://localhost:5173', // Allow only the frontend origin
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+}));
+*/
 
+app.use(express.json());
 // --- Logging Middleware (Optional but helpful) ---
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
